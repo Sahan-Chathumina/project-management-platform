@@ -3,27 +3,37 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import {
+  LayoutDashboard,
+  Users as UsersIcon,
+  FolderKanban,
+  ListTodo,
+  UserCircle,
+  LogOut,
+} from 'lucide-react';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', roles: ['Administrator', 'Project Manager', 'Team Member'] },
-  { href: '/users', label: 'Users', roles: ['Administrator'] },
-  { href: '/projects', label: 'Projects', roles: ['Administrator', 'Project Manager', 'Team Member'] },
-  { href: '/tasks', label: 'Tasks', roles: ['Administrator', 'Project Manager', 'Team Member'] },
-  { href: '/profile', label: 'Profile', roles: ['Administrator', 'Project Manager', 'Team Member'] },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['Administrator', 'Project Manager', 'Team Member'] },
+  { href: '/users', label: 'Users', icon: UsersIcon, roles: ['Administrator'] },
+  { href: '/projects', label: 'Projects', icon: FolderKanban, roles: ['Administrator', 'Project Manager', 'Team Member'] },
+  { href: '/tasks', label: 'Tasks', icon: ListTodo, roles: ['Administrator', 'Project Manager', 'Team Member'] },
+  { href: '/profile', label: 'Profile', icon: UserCircle, roles: ['Administrator', 'Project Manager', 'Team Member'] },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-
   const roleName = user?.role?.name;
 
   return (
-    <aside className="w-64 min-h-screen bg-gray-900 text-white flex flex-col">
-      <div className="p-6 border-b border-gray-800">
-        <h2 className="text-lg font-bold">PM Platform</h2>
+    <aside className="w-64 min-h-screen bg-slate-900 text-white flex flex-col">
+      <div className="p-6 border-b border-slate-800">
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          <LayoutDashboard className="w-5 h-5 text-blue-400" />
+          PM Platform
+        </h2>
         {user && (
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-slate-400 mt-2">
             {user.name} · {roleName || 'No role'}
           </p>
         )}
@@ -32,26 +42,30 @@ export default function Sidebar() {
       <nav className="flex-1 p-4 space-y-1">
         {navItems
           .filter((item) => !roleName || item.roles.includes(roleName))
-          .map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`block px-4 py-2 rounded-lg text-sm transition ${
-                pathname === item.href
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800'
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          .map((item) => {
+            const Icon = item.icon;
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition ${
+                  active ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {item.label}
+              </Link>
+            );
+          })}
       </nav>
 
-      <div className="p-4 border-t border-gray-800">
+      <div className="p-4 border-t border-slate-800">
         <button
           onClick={logout}
-          className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 rounded-lg transition text-left"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-800 rounded-lg transition"
         >
+          <LogOut className="w-4 h-4" />
           Log out
         </button>
       </div>
