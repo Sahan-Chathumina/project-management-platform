@@ -4,9 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use Illuminate\Http\Request;
+use App\Models\User;
 
 class ProjectMemberController extends Controller
 {
+
+    public function availableUsers()
+    {
+        return response()->json(User::select('id', 'name', 'email')->orderBy('name')->get());
+    }
+    
     public function index(Project $project)
     {
         return response()->json($project->members);

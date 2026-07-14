@@ -15,7 +15,7 @@ class TaskController extends Controller
         if ($user->role->name === 'Team Member') {
             $query->where('assigned_to', $user->id);
         } elseif ($user->role->name === 'Project Manager') {
-            $query->whereHas('project', fn ($q) => $q->where('created_by', $user->id));
+            $query->whereHas('project', fn($q) => $q->where('created_by', $user->id));
         }
 
         if ($request->has('project_id')) {
@@ -70,6 +70,10 @@ class TaskController extends Controller
     public function updateStatus(Request $request, Task $task)
     {
         $user = $request->user();
+
+        if ($task->status === 'completed') {
+            return response()->json(['message' => 'Completed tasks cannot be reopened.'], 422);
+        }
 
         if ($user->role->name === 'Team Member' && $task->assigned_to !== $user->id) {
             return response()->json(['message' => 'Forbidden. You can only update tasks assigned to you.'], 403);

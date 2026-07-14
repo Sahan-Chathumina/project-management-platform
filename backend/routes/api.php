@@ -28,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:Administrator,Project Manager')->group(function () {
         Route::post('/projects', [ProjectController::class, 'store']);
         Route::put('/projects/{project}', [ProjectController::class, 'update']);
+        Route::get('/team-members', [ProjectMemberController::class, 'availableUsers']);
 
         Route::get('/projects/{project}/members', [ProjectMemberController::class, 'index']);
         Route::post('/projects/{project}/members', [ProjectMemberController::class, 'store']);
