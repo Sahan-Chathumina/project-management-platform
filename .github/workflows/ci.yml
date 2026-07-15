@@ -1,0 +1,100 @@
+# CI/CD Workflow Explanation
+
+## Overview
+
+This project uses **GitHub Actions** for continuous integration, running automatically on every push and pull request to `main`. A sample workflow is included at `.github/workflows/ci.yml` (see below) — add it to your repo root under that exact path.
+
+Deployment itself is handled by two platforms that watch the repository directly:
+- **Render** — auto-deploys the backend on every commit (`autoDeployTrigger: commit` in `render.yaml`), building the Docker image and running migrations/seeders via `start.sh` before the container serves traffic.
+- **Vercel** — auto-deploys the frontend on every push, building the Next.js app and picking up the latest `NEXT_PUBLIC_API_URL` environment variable.
+
+This gives a full pipeline: **GitHub push → CI validation → platform auto-deploy**, without needing custom deploy scripts in Actions itself.
+
+## Pipeline Stages
+
+### 1. Backend CI (Laravel)
+- Checkout code
+- Set up PHP 8.2 with required extensions (`pdo`, `pdo_pgsql`)
+- Install Composer dependencies
+- Copy `.env.example` → `.env` and generate an app key for the test environment
+- Run `php artisan test` (or `vendor/bin/phpunit`) against an in-memory/test database
+- Run static analysis / lint (e.g. `./vendor/bin/pint --test` if Laravel Pint is installed)
+
+### 2. Frontend CI (Next.js)
+- Checkout code
+- Set up Node.js 18
+- Install dependencies (`npm ci`)
+- Run lint (`npm run lint`)
+- Run build validation (`npm run build`) to catch type errors and build failures before merge
+
+### 3. Deployment (external to Actions)
+- On merge to `main`, Render and Vercel each independently detect the new commit via their GitHub integration and trigger their own build/deploy pipelines — no manual deploy step required.
+
+## Why This Approach
+
+- Keeps CI focused on **fast feedback** (lint/test/build) rather than duplicating deploy logic that Render/Vercel already handle natively via their GitHub integrations.
+- Failing lint/tests blocks merging bad code into `main`, which is what triggers the platform auto-deploys — so CI acts as a gate before any deploy happens.
+- Matches the assessment's requirement for "linting, testing, or build validation" without over-engineering a custom deploy pipeline for a small project.
+
+## Sample Workflow File
+
+```yaml
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_pgsql
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run tests
+        run: php artisan test
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+`
