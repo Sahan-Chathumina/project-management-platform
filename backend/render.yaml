@@ -20,7 +20,6 @@ projects:
             autoDeployTrigger: commit
 
             dockerCommand: php artisan migrate --force && php artisan db:seed --force
-
             envVars:
               - key: APP_ENV
                 value: production
