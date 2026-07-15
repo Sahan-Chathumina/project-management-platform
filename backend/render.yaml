@@ -8,7 +8,7 @@ projects:
         # 1. BACKEND SERVICE (Docker Container)
         # ----------------------------------------------------
         services:
-          - type: pserv # Private Service (Change to 'web' if you need it publicly accessible via HTTP)
+          - type: web 
             name: project-management-api
             runtime: docker
             repo: https://github.com/Sahan-Chathumina/project-management-platform
