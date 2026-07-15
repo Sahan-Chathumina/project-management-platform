@@ -1,0 +1,28 @@
+FROM php:8.2-apache
+
+# Install required system extensions for PostgreSQL and Laravel
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    git \
+    unzip \
+    && docker-php-ext-install pdo pdo_pgsql
+
+# Enable Apache rewriting modules
+RUN a2enmod rewrite
+
+# Update document root to Laravel's public folder
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+WORKDIR /var/www/html
+COPY . .
+
+# Install Composer packages securely
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Set storage file permissions so the engine can write sessions/logs
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+EXPOSE 80
