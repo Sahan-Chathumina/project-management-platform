@@ -10,7 +10,7 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('roles')->insert([
+        DB::table('roles')->insertOrIgnore([
             ['name' => 'Administrator', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Project Manager', 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Team Member', 'created_at' => now(), 'updated_at' => now()],
