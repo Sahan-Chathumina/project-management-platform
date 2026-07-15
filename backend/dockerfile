@@ -25,4 +25,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Set storage file permissions so the engine can write sessions/logs
 RUN chown -R www-data:www-data storage bootstrap/cache
 
+# Make startup script executable
+RUN chmod +x start.sh
+
 EXPOSE 80
+
+CMD ["./start.sh"]
