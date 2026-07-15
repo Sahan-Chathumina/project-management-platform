@@ -8,7 +8,7 @@ projects:
         # 1. BACKEND SERVICE (Docker Container)
         # ----------------------------------------------------
         services:
-          - type: web 
+          - type: web
             name: project-management-api
             runtime: docker
             repo: https://github.com/Sahan-Chathumina/project-management-platform
@@ -18,18 +18,15 @@ projects:
             dockerfilePath: ./Dockerfile
             dockerContext: .
             autoDeployTrigger: commit
-            
-            # The safe deployment pipeline command (handles schema updates safely)
-            dockerCommand: php artisan migrate --force
+
+            dockerCommand: php artisan migrate --force && php artisan db:seed --force
 
             envVars:
-              # Framework Environment Settings
               - key: APP_ENV
                 value: production
               - key: APP_DEBUG
                 value: "false"
-              
-              # Automated DB Target Injections via Blueprint Links
+
               - key: DB_CONNECTION
                 value: pgsql
               - key: DB_HOST
