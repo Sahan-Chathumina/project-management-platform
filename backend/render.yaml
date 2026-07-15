@@ -1,0 +1,68 @@
+version: "1"
+projects:
+  - name: My project
+    environments:
+      - name: Production
+        
+        # ----------------------------------------------------
+        # 1. BACKEND SERVICE (Docker Container)
+        # ----------------------------------------------------
+        services:
+          - type: pserv # Private Service (Change to 'web' if you need it publicly accessible via HTTP)
+            name: project-management-api
+            runtime: docker
+            repo: https://github.com/Sahan-Chathumina/project-management-platform
+            plan: starter
+            region: singapore
+            rootDir: backend
+            dockerfilePath: ./Dockerfile
+            dockerContext: .
+            autoDeployTrigger: commit
+            
+            # The safe deployment pipeline command (handles schema updates safely)
+            dockerCommand: php artisan migrate --force
+
+            envVars:
+              # Framework Environment Settings
+              - key: APP_ENV
+                value: production
+              - key: APP_DEBUG
+                value: "false"
+              
+              # Automated DB Target Injections via Blueprint Links
+              - key: DB_CONNECTION
+                value: pgsql
+              - key: DB_HOST
+                fromDatabase:
+                  name: project-db
+                  property: host
+              - key: DB_PORT
+                fromDatabase:
+                  name: project-db
+                  property: port
+              - key: DB_DATABASE
+                fromDatabase:
+                  name: project-db
+                  property: database
+              - key: DB_USERNAME
+                fromDatabase:
+                  name: project-db
+                  property: user
+              - key: DB_PASSWORD
+                fromDatabase:
+                  name: project-db
+                  property: password
+
+        # ----------------------------------------------------
+        # 2. DATABASE SERVICE (PostgreSQL 18 Instance)
+        # ----------------------------------------------------
+        databases:
+          - name: project-db
+            databaseName: project_management_q132
+            user: db_user
+            plan: free
+            region: singapore
+            postgresMajorVersion: "18"
+            ipAllowList:
+              - source: 0.0.0.0/0
+                description: everywhere
