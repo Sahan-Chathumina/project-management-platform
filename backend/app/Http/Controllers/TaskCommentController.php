@@ -33,9 +33,15 @@ class TaskCommentController extends Controller
         return response()->json($comment->load('user'), 201);
     }
 
-    public function destroy(TaskComment $comment)
-    {
-        $comment->delete();
-        return response()->json(['message' => 'Comment deleted']);
+    public function destroy(Request $request, TaskComment $comment)
+{
+    $user = $request->user();
+
+    if ($comment->user_id !== $user->id && $user->role->name !== 'Administrator') {
+        return response()->json(['message' => 'Forbidden.'], 403);
     }
+
+    $comment->delete();
+    return response()->json(['message' => 'Comment deleted']);
+}
 }
